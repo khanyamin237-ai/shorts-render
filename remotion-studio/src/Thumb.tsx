@@ -6,9 +6,10 @@ import { FONT, NOT_FOUND, useHind, type ShortProps } from "./common";
 export const Thumb: React.FC<ShortProps> = ({ thumbnailText, title, info }) => {
   useHind();
   const text = (thumbnailText || title || "").trim();
+  const lb = info.labels || {};
   const parts = [
-    info.totalPosts && info.totalPosts !== NOT_FOUND ? "कुल पद: " + info.totalPosts : "",
-    info.lastDate && info.lastDate !== NOT_FOUND ? "अंतिम तारीख: " + info.lastDate : "",
+    info.totalPosts && info.totalPosts !== NOT_FOUND ? (lb.totalPosts || "कुल पद") + ": " + info.totalPosts : "",
+    info.lastDate && info.lastDate !== NOT_FOUND ? (lb.lastDate || "अंतिम तारीख") + ": " + info.lastDate : "",
   ].filter(Boolean);
   const joined = parts.join(" • ");
   const chip = [...joined].length > 38 ? parts[0] ?? "" : joined;
