@@ -9,7 +9,13 @@ export const NOT_FOUND = "ऑफिशियल साइट देखें";
 export const FONT = "Hind, 'Noto Sans Devanagari', sans-serif";
 
 export type Scene = { voice: string; caption: string };
-export type Info = { postName: string; totalPosts: string; startDate: string; lastDate: string };
+export type Info = {
+  postName: string;
+  totalPosts: string;
+  startDate: string;
+  lastDate: string;
+  labels?: { totalPosts?: string; startDate?: string; lastDate?: string };
+};
 export type ShortProps = {
   scenes: Scene[];
   info: Info;
