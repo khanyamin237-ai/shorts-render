@@ -16,26 +16,33 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: remotion-studio
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.12"
-      - name: Install tools
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chrome libraries
         run: |
-          pip install pillow
           sudo apt-get update -y
-          sudo apt-get install -y fonts-freefont-ttf libraqm0 libfribidi0 ffmpeg || true
-          curl -fL -o hind.ttf https://github.com/google/fonts/raw/main/ofl/hind/Hind-Bold.ttf || true
-      - name: Render video
+          for p in libnss3 libnspr4 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2t64 libasound2; do
+            sudo apt-get install -y "$p" >/dev/null 2>&1 || echo "skip $p"
+          done
+      - name: Prepare assets
         env:
           PAYLOAD: ${{ inputs.payload }}
-          FONT: hind.ttf
-        run: python render/render.py
+        run: node prepare.mjs
+      - name: Render video
+        run: npx remotion render src/index.ts Short out/video.mp4 --props=props.json --codec=h264 --log=info
+      - name: Render thumbnail
+        run: npx remotion still src/index.ts Thumb out/thumb.jpg --props=props.json --image-format=jpeg --jpeg-quality=92
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
-        run: |
-          gh release create "$TAG" out/video.mp4 out/thumb.jpg --title "$TAG" --notes "Auto render"
+        run: gh release create "$TAG" out/video.mp4 out/thumb.jpg --title "$TAG" --notes "Auto render"
