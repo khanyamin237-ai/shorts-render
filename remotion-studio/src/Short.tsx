@@ -285,13 +285,15 @@ const Progress: React.FC<{ marks: number[] }> = ({ marks }) => {
 
 const InfoBoxes: React.FC<{ info: ShortProps["info"] }> = ({ info }) => {
   const frame = useCurrentFrame();
-  const val = (x?: string) => x || NOT_FOUND;
+  const lb = info.labels || {};
+  // Khali ya "ऑफिशियल साइट देखें" wale box chhupa do: sirf asli, verified jaankari dikhao.
   const boxes = [
-    { label: "कुल पद", value: val(info.totalPosts), red: false },
-    { label: "शुरू तारीख", value: val(info.startDate), red: false },
-    { label: "अंतिम तारीख", value: val(info.lastDate), red: true },
-  ];
-  const bw = 310;
+    { label: lb.totalPosts || "कुल पद", value: (info.totalPosts || "").trim(), red: false },
+    { label: lb.startDate || "शुरू तारीख", value: (info.startDate || "").trim(), red: false },
+    { label: lb.lastDate || "अंतिम तारीख", value: (info.lastDate || "").trim(), red: true },
+  ].filter((b) => b.value && b.value !== NOT_FOUND);
+  if (!boxes.length) return null;
+  const bw = boxes.length === 1 ? 640 : boxes.length === 2 ? 480 : 310;
   const bh = 170;
   const gap = 25;
   return (
@@ -300,13 +302,13 @@ const InfoBoxes: React.FC<{ info: ShortProps["info"] }> = ({ info }) => {
         const p = pop(frame, 14 + k * 5, 11);
         const pulse = b.red ? 1 + Math.sin(frame / 6) * 0.02 : 1;
         const n = [...b.value].length;
-        const vs = n <= 8 ? 40 : n <= 12 ? 34 : 28;
+        const vs = boxes.length < 3 ? (n <= 14 ? 44 : 36) : n <= 8 ? 40 : n <= 12 ? 34 : 28;
         return (
           <div
             key={k}
             style={{
               position: "absolute",
-              left: W / 2 + (k - 1) * (bw + gap) - bw / 2,
+              left: W / 2 + (k - (boxes.length - 1) / 2) * (bw + gap) - bw / 2,
               top: 1450 - bh / 2,
               width: bw,
               height: bh,
