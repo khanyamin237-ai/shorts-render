@@ -40,7 +40,7 @@ jobs:
       - name: Render video
         run: npx remotion render src/index.ts Short out/video.mp4 --props=props.json --codec=h264 --log=info
       - name: Render thumbnail
-        run: npx remotion still src/index.ts Thumb out/thumb.jpg --props=props.json --image-format=jpeg --jpeg-quality=88
+        run: npx remotion still src/index.ts Thumb out/thumb.jpg --props=props.json --image-format=jpeg --jpeg-quality=80
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
