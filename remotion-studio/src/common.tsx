@@ -5,6 +5,7 @@ export const FPS = 30;
 export const W = 1080;
 export const H = 1920;
 export const PAD_SECONDS = 0.25;
+export const INTRO_FRAMES = FPS; // video ke shuru me thumbnail 1 second (30 frames) dikhta hai
 export const NOT_FOUND = "ऑफिशियल साइट देखें";
 export const FONT = "Hind, 'Noto Sans Devanagari', sans-serif";
 
