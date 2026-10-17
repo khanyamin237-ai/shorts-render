@@ -14,6 +14,8 @@ export type Info = {
   totalPosts: string;
   startDate: string;
   lastDate: string;
+  salary?: string;
+  ageLimit?: string;
   labels?: { totalPosts?: string; startDate?: string; lastDate?: string };
 };
 export type ShortProps = {
@@ -24,6 +26,7 @@ export type ShortProps = {
   hasMusic: boolean;
   thumbnailText: string;
   title: string;
+  kind?: string;
 };
 
 // Sirf Studio preview / test ke liye. Asli render me props.json aata hai (prepare.mjs banata hai).
