@@ -72,6 +72,7 @@ const props = {
   hasMusic,
   thumbnailText: String(payload.thumbnailText || ""),
   title: String(payload.title || ""),
+  kind: String(payload.kind || "recruitment"),
 };
 fs.writeFileSync("props.json", JSON.stringify(props));
 console.log("props ready:", scenes.length, "scenes, total", durations.reduce((a, b) => a + b, 0).toFixed(1), "sec");
