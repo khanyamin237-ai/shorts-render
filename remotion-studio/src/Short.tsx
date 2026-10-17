@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, Easing, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { FONT, FPS, H, NOT_FOUND, W, sceneFrames, useHind, type ShortProps } from "./common";
+import { FONT, FPS, H, INTRO_FRAMES, NOT_FOUND, W, sceneFrames, useHind, type ShortProps } from "./common";
+import { Thumb } from "./Thumb";
 
 const WHITE = "#FFFFFF";
 const YELLOW = "#FFE600";
@@ -265,9 +266,9 @@ const Sweep: React.FC = () => {
 };
 
 // Poori video ke saath smoothly bharta progress bar; scene ki seemayein chhote nishaan se dikhti hain.
-const Progress: React.FC<{ marks: number[] }> = ({ marks }) => {
+const Progress: React.FC<{ marks: number[]; total: number }> = ({ marks, total }) => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const durationInFrames = total;
   const full = W - SIDE * 2;
   const fw = Math.max(14, full * Math.min(1, (frame + 1) / durationInFrames));
   return (
@@ -368,10 +369,10 @@ const Footer: React.FC = () => {
   );
 };
 
-export const Short: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic }) => {
+const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic }) => {
   useHind();
-  const { durationInFrames } = useVideoConfig();
   const lens = sceneFrames(durations);
+  const total = lens.reduce((a, b) => a + b, 0);
   const starts = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
   return (
     <AbsoluteFill style={{ backgroundColor: "#07152f", width: W, height: H }}>
@@ -380,7 +381,7 @@ export const Short: React.FC<ShortProps> = ({ scenes, info, voiceFiles, duration
         <Audio
           src={staticFile("music.mp3")}
           loop
-          volume={(f) => interpolate(f, [0, 20, durationInFrames - 45, durationInFrames], [0, 0.12, 0.12, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+          volume={(f) => interpolate(f, [0, 20, total - 45, total], [0, 0.12, 0.12, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
         />
       ) : null}
       <Header postName={info.postName || ""} />
@@ -392,9 +393,24 @@ export const Short: React.FC<ShortProps> = ({ scenes, info, voiceFiles, duration
           <Sweep />
         </Sequence>
       ))}
-      <Progress marks={starts.slice(1)} />
+      <Progress marks={starts.slice(1)} total={total} />
       <InfoBoxes info={info} />
       <Footer />
+    </AbsoluteFill>
+  );
+};
+
+// Pehle INTRO_FRAMES (1 second) tak thumbnail, phir poori video (awaaz + scenes ab 1 second baad shuru).
+export const Short: React.FC<ShortProps> = (props) => {
+  const total = sceneFrames(props.durations).reduce((a, b) => a + b, 0);
+  return (
+    <AbsoluteFill style={{ backgroundColor: "#07152f", width: W, height: H }}>
+      <Sequence from={0} durationInFrames={INTRO_FRAMES} name="Thumbnail">
+        <Thumb {...props} />
+      </Sequence>
+      <Sequence from={INTRO_FRAMES} durationInFrames={total} name="Video">
+        <Body {...props} />
+      </Sequence>
     </AbsoluteFill>
   );
 };
