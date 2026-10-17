@@ -1,11 +1,11 @@
 import React from "react";
 import { Composition, Still, type CalculateMetadataFunction } from "remotion";
-import { FPS, H, W, defaultProps, sceneFrames, type ShortProps } from "./common";
+import { FPS, H, INTRO_FRAMES, W, defaultProps, sceneFrames, type ShortProps } from "./common";
 import { Short } from "./Short";
 import { Thumb } from "./Thumb";
 
 const calculateMetadata: CalculateMetadataFunction<ShortProps> = ({ props }) => ({
-  durationInFrames: sceneFrames(props.durations).reduce((a, b) => a + b, 0),
+  durationInFrames: INTRO_FRAMES + sceneFrames(props.durations).reduce((a, b) => a + b, 0),
 });
 
 export const Root: React.FC = () => (
