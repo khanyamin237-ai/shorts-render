@@ -20,6 +20,6 @@ export const Root: React.FC = () => (
       defaultProps={defaultProps}
       calculateMetadata={calculateMetadata}
     />
-    <Still id="Thumb" component={Thumb} width={1280} height={720} defaultProps={defaultProps} />
+    <Still id="Thumb" component={Thumb} width={1080} height={1920} defaultProps={defaultProps} />
   </>
 );
