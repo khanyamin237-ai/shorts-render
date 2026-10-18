@@ -64,6 +64,24 @@ if (payload.musicUrl) {
   }
 }
 
+// Thumbnail ki background photo (AI se bani, vibhag ke hisab se). Na mile to chupchap purana design use hota hai.
+let bg = "";
+if (payload.bgUrl) {
+  try {
+    const buf = await download(payload.bgUrl, "Background");
+    const isPng = buf.subarray(1, 4).toString("latin1") === "PNG";
+    const isJpg = buf[0] === 0xff && buf[1] === 0xd8;
+    if (isPng || isJpg) {
+      bg = isPng ? "bg.png" : "bg.jpg";
+      fs.writeFileSync("public/" + bg, buf);
+    } else {
+      console.log("Background image jaisi nahi lagi, skip hua");
+    }
+  } catch (err) {
+    console.log("Background skip hua:", String(err));
+  }
+}
+
 const props = {
   scenes: scenes.map((s) => ({ voice: String(s.voice || ""), caption: String(s.caption || "") })),
   info: payload.info || { postName: "", totalPosts: "", startDate: "", lastDate: "" },
@@ -73,6 +91,7 @@ const props = {
   thumbnailText: String(payload.thumbnailText || ""),
   title: String(payload.title || ""),
   kind: String(payload.kind || "recruitment"),
+  ...(bg ? { bg } : {}),
 };
 fs.writeFileSync("props.json", JSON.stringify(props));
 console.log("props ready:", scenes.length, "scenes, total", durations.reduce((a, b) => a + b, 0).toFixed(1), "sec");
