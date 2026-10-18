@@ -28,6 +28,7 @@ export type ShortProps = {
   thumbnailText: string;
   title: string;
   kind?: string;
+  bg?: string; // thumbnail ki background photo (public/ me file ka naam), na ho to purana gradient design
 };
 
 // Sirf Studio preview / test ke liye. Asli render me props.json aata hai (prepare.mjs banata hai).
