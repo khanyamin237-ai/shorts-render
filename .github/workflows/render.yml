@@ -41,6 +41,16 @@ jobs:
         run: npx remotion render src/index.ts Short out/video.mp4 --props=props.json --codec=h264 --log=info
       - name: Render thumbnail
         run: npx remotion still src/index.ts Thumb out/thumb.jpg --props=props.json --image-format=jpeg --jpeg-quality=80
+      - name: Verify audio in final MP4
+        run: |
+          A=$(npx remotion ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 out/video.mp4 | head -n1)
+          D=$(npx remotion ffprobe -v error -show_entries format=duration -of csv=p=0 out/video.mp4 | head -n1)
+          echo "audio codec: $A, duration: $D sec"
+          if [ -z "$A" ]; then echo "FINAL MP4 me audio stream nahi hai"; exit 1; fi
+          V=$(npx remotion ffmpeg -hide_banner -i out/video.mp4 -vn -af volumedetect -f null - 2>&1 | grep max_volume | head -n1 || true)
+          echo "$V"
+          MAXV=$(echo "$V" | sed -E 's/.*max_volume: (-?[0-9.]+|-inf) dB.*/\1/')
+          if [ -z "$MAXV" ] || [ "$MAXV" = "-inf" ] || awk "BEGIN{exit !($MAXV < -50)}"; then echo "FINAL MP4 ki awaaz silent hai"; exit 1; fi
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
