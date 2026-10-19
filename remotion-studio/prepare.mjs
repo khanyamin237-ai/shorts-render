@@ -1,6 +1,6 @@
 // GitHub Actions me render se pehle: font + voice files download, har voice ki length naapna, props.json banana.
 import fs from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 
 const payload = JSON.parse(process.env.PAYLOAD || "{}");
 const scenes = Array.isArray(payload.scenes) ? payload.scenes : [];
@@ -38,6 +38,18 @@ function duration(file) {
   return seconds;
 }
 
+function ff(args) {
+  return spawnSync("npx", ["remotion", "ffmpeg", ...args], { encoding: "utf8" });
+}
+
+// Awaaz ki sabse tez awaaz (dB). -Infinity = poori silent file, null = naap nahi paaye.
+function maxVolume(file) {
+  const r = ff(["-hide_banner", "-i", file, "-vn", "-af", "volumedetect", "-f", "null", "-"]);
+  const m = String(r.stderr || "").concat(String(r.stdout || "")).match(/max_volume: (-?[0-9.]+|-inf) dB/);
+  if (!m) return null;
+  return m[1] === "-inf" ? -Infinity : parseFloat(m[1]);
+}
+
 fs.writeFileSync(
   "public/hind.ttf",
   await download("https://github.com/google/fonts/raw/main/ofl/hind/Hind-Bold.ttf", "Hind font")
@@ -48,16 +60,32 @@ const durations = [];
 for (let i = 0; i < scenes.length; i++) {
   const buf = await download(voiceUrls[i], "Voice " + (i + 1));
   const ext = buf.subarray(0, 4).toString("latin1") === "RIFF" ? "wav" : "mp3";
-  const name = "voice" + (i + 1) + "." + ext;
-  fs.writeFileSync("public/" + name, buf);
+  const raw = "public/raw" + (i + 1) + "." + ext;
+  fs.writeFileSync(raw, buf);
+  // Har scene ki loudness ek jaisi (-16 LUFS, Shorts ke liye theek) taaki awaaz dheemi/tez na ho. Fail ho to original rakho.
+  let name = "voice" + (i + 1) + ".wav";
+  const norm = ff(["-y", "-i", raw, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "44100", "-ac", "1", "-c:a", "pcm_s16le", "public/" + name]);
+  if (norm.status !== 0 || !fs.existsSync("public/" + name) || fs.statSync("public/" + name).size < 2000) {
+    console.log("Loudness normalize skip (scene " + (i + 1) + "):", String(norm.stderr || "").slice(-200));
+    name = "voice" + (i + 1) + "." + ext;
+    fs.copyFileSync(raw, "public/" + name);
+  }
+  fs.rmSync(raw, { force: true });
+  const peak = maxVolume("public/" + name);
+  if (peak === -Infinity || (peak !== null && peak < -50)) {
+    throw new Error("Scene " + (i + 1) + " ki awaaz silent hai (peak " + peak + " dB) — video nahi banega.");
+  }
   voiceFiles.push(name);
   durations.push(duration("public/" + name));
 }
 
 let hasMusic = false;
+let musicFile = "music.mp3";
 if (payload.musicUrl) {
   try {
-    fs.writeFileSync("public/music.mp3", await download(payload.musicUrl, "Music"));
+    const mbuf = await download(payload.musicUrl, "Music");
+    musicFile = mbuf.subarray(0, 4).toString("latin1") === "RIFF" ? "music.wav" : "music.mp3";
+    fs.writeFileSync("public/" + musicFile, mbuf);
     hasMusic = true;
   } catch (err) {
     console.log("Music skip hua:", String(err));
@@ -88,6 +116,9 @@ const props = {
   voiceFiles,
   durations,
   hasMusic,
+  musicFile,
+  voiceVolume: Math.min(1.5, Math.max(0.3, Number(payload.voiceVolumePct || 100) / 100)),
+  musicVolume: Math.min(0.4, Math.max(0, Number(payload.musicVolumePct === undefined ? 12 : payload.musicVolumePct) / 100)),
   thumbnailText: String(payload.thumbnailText || ""),
   title: String(payload.title || ""),
   kind: String(payload.kind || "recruitment"),
