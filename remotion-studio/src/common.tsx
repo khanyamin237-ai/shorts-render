@@ -25,6 +25,9 @@ export type ShortProps = {
   voiceFiles: string[];
   durations: number[];
   hasMusic: boolean;
+  voiceVolume?: number; // narration volume (1 = normal)
+  musicVolume?: number; // background music volume (0..1)
+  musicFile?: string; // public/ me music file ka naam
   thumbnailText: string;
   title: string;
   kind?: string;
