@@ -369,7 +369,7 @@ const Footer: React.FC = () => {
   );
 };
 
-const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic }) => {
+const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic, voiceVolume = 1, musicVolume = 0.12, musicFile = "music.mp3" }) => {
   useHind();
   const lens = sceneFrames(durations);
   const total = lens.reduce((a, b) => a + b, 0);
@@ -377,17 +377,17 @@ const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMu
   return (
     <AbsoluteFill style={{ backgroundColor: "#07152f", width: W, height: H }}>
       <Background />
-      {hasMusic ? (
+      {hasMusic && musicVolume > 0 ? (
         <Audio
-          src={staticFile("music.mp3")}
+          src={staticFile(musicFile)}
           loop
-          volume={(f) => interpolate(f, [0, 20, total - 45, total], [0, 0.12, 0.12, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+          volume={(f) => interpolate(f, [0, 20, total - 45, total], [0, musicVolume, musicVolume, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
         />
       ) : null}
       <Header postName={info.postName || ""} />
       {scenes.map((s, i) => (
         <Sequence key={i} from={starts[i]} durationInFrames={lens[i]} name={"Scene " + (i + 1)}>
-          <Audio src={staticFile(voiceFiles[i])} />
+          <Audio src={staticFile(voiceFiles[i])} volume={voiceVolume} />
           <Badge index={i} frames={lens[i]} />
           <Caption text={s.caption} hook={i === 0} frames={lens[i]} />
           <Sweep />
