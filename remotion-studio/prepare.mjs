@@ -1,6 +1,7 @@
 // GitHub Actions me render se pehle: font + voice files download, har voice ki length naapna, props.json banana.
 import fs from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
+import { peakDb } from "./audio-check.mjs";
 
 const payload = JSON.parse(process.env.PAYLOAD || "{}");
 const scenes = Array.isArray(payload.scenes) ? payload.scenes : [];
@@ -42,14 +43,6 @@ function ff(args) {
   return spawnSync("npx", ["remotion", "ffmpeg", ...args], { encoding: "utf8" });
 }
 
-// Awaaz ki sabse tez awaaz (dB). -Infinity = poori silent file, null = naap nahi paaye.
-function maxVolume(file) {
-  const r = ff(["-hide_banner", "-i", file, "-vn", "-af", "volumedetect", "-f", "null", "-"]);
-  const m = String(r.stderr || "").concat(String(r.stdout || "")).match(/max_volume: (-?[0-9.]+|-inf) dB/);
-  if (!m) return null;
-  return m[1] === "-inf" ? -Infinity : parseFloat(m[1]);
-}
-
 fs.writeFileSync(
   "public/hind.ttf",
   await download("https://github.com/google/fonts/raw/main/ofl/hind/Hind-Bold.ttf", "Hind font")
@@ -71,7 +64,7 @@ for (let i = 0; i < scenes.length; i++) {
     fs.copyFileSync(raw, "public/" + name);
   }
   fs.rmSync(raw, { force: true });
-  const peak = maxVolume("public/" + name);
+  const peak = peakDb("public/" + name);
   if (peak === -Infinity || (peak !== null && peak < -50)) {
     throw new Error("Scene " + (i + 1) + " ki awaaz silent hai (peak " + peak + " dB) — video nahi banega.");
   }
