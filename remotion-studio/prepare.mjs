@@ -116,6 +116,8 @@ const props = {
   title: String(payload.title || ""),
   kind: String(payload.kind || "recruitment"),
   ...(bg ? { bg } : {}),
+  ...(typeof payload.layout === "string" ? { layout: payload.layout } : {}),
+  ...(payload.palette && typeof payload.palette === "object" ? { palette: payload.palette } : {}),
 };
 fs.writeFileSync("props.json", JSON.stringify(props));
 console.log("props ready:", scenes.length, "scenes, total", durations.reduce((a, b) => a + b, 0).toFixed(1), "sec");
