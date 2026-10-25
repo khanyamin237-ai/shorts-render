@@ -49,6 +49,41 @@ const Background: React.FC = () => {
           backgroundPosition: "0px " + ((frame * 0.9) % 90) + "px",
         }}
       />
+      <div
+        style={{
+          position: "absolute",
+          left: 900,
+          top: 560,
+          width: 130,
+          height: 130,
+          borderRadius: "50%",
+          background: "#fff1b8",
+          opacity: 0.45,
+          boxShadow: "0 0 90px 30px rgba(255,241,184,0.25)",
+        }}
+      />
+      {[75, 1005].map((lx, i) => {
+        const sw = Math.sin(t * 1.3 + i * 2) * 5;
+        return (
+          <div
+            key={"lan" + i}
+            style={{ position: "absolute", left: lx - 2, top: 0, width: 4, height: 190, background: "#ffd60a", opacity: 0.7, transformOrigin: "50% 0", transform: "rotate(" + sw + "deg)" }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: -34,
+                top: 170,
+                width: 72,
+                height: 92,
+                borderRadius: "50%",
+                background: i ? "#ff7a00" : "#e63946",
+                boxShadow: "0 0 40px rgba(255,150,60,0.6)",
+              }}
+            />
+          </div>
+        );
+      })}
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%)" }} />
     </AbsoluteFill>
   );
@@ -348,12 +383,13 @@ const Footer: React.FC = () => {
     <div
       style={{
         position: "absolute",
-        left: (W - 1000) / 2,
-        top: 1729,
-        width: 1000,
-        height: 72,
+        left: 50,
+        top: 1690,
+        width: 660,
+        height: 150,
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
+        alignItems: "flex-start",
         justifyContent: "center",
         fontFamily: FONT,
         fontWeight: 700,
@@ -364,7 +400,108 @@ const Footer: React.FC = () => {
         transform: "translateY(" + ((1 - p) * 60 + bob) + "px)",
       }}
     >
-      LINK DESCRIPTION MEIN • FOLLOW FOR UPDATES
+      <div>LINK DESCRIPTION MEIN</div>
+      <div>FOLLOW FOR UPDATES</div>
+    </div>
+  );
+};
+
+const HAIR = "#1e1038";
+const SKIN = "#f9d3b4";
+const TEAL = "#0e9e9a";
+
+// Presenter: flat-vector ladki (ID card + tick liye). Neeche-right me slide-up hoti hai, sans leti hai, palak jhapakti hai, muh bolte hue khulta-band hota hai.
+const Presenter: React.FC = () => {
+  const frame = useCurrentFrame();
+  const p = pop(frame, 14, 13);
+  const bob = Math.sin(frame / 10) * 5;
+  const sway = Math.sin(frame / 24) * 2;
+  const mouth = 3 + Math.abs(Math.sin(frame / 3)) * 9;
+  const blink = frame % 90 > 86 ? 0.15 : 1;
+  const wave = Math.sin(frame / 9) * 5;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 735,
+        top: 1540,
+        width: 325,
+        height: 411,
+        transformOrigin: "50% 100%",
+        transform: "translateY(" + ((1 - p) * 430 + bob) + "px) rotate(" + sway + "deg)",
+        opacity: Math.min(1, p * 1.4),
+      }}
+    >
+      <svg width={325} height={411} viewBox="0 0 440 556">
+        <defs>
+          <radialGradient id="pg" cx="50%" cy="43%" r="52%">
+            <stop offset="0" stopColor="rgba(170,110,255,0.35)" />
+            <stop offset="1" stopColor="rgba(170,110,255,0)" />
+          </radialGradient>
+        </defs>
+        <rect width="440" height="560" fill="url(#pg)" />
+        <path d="M88 560 L88 210 C88 20 352 20 352 210 L352 560 Z" fill={HAIR} />
+        <rect x="190" y="318" width="60" height="80" fill="#efbd95" />
+        <path d="M36 560 L66 432 Q220 358 374 432 L404 560 Z" fill={TEAL} />
+        <path d="M112 398 L160 378 L404 560 L316 560 Z" fill="#ee3f96" />
+        <line x1="112" y1="398" x2="316" y2="560" stroke="#ffd60a" strokeWidth="6" strokeLinecap="round" />
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <circle key={"d" + i} cx={140 + i * 38} cy={392 + i * 28} r="5" fill="#fff" />
+        ))}
+        <path d="M270.4 384.9 A52 52 0 0 1 169.5 384.4" stroke="#ffd60a" strokeWidth="5" fill="none" />
+        <path d="M104 230 L150 230 Q140 420 130 560 L92 560 Z" fill={HAIR} />
+        <path d="M336 230 L290 230 Q300 420 310 560 L348 560 Z" fill={HAIR} />
+        <polyline points="98,452 48,408 58,332" stroke={TEAL} strokeWidth="48" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <polyline points="342,452 396,410 374,334" stroke={TEAL} strokeWidth="48" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <circle cx="58" cy="322" r="24" fill={SKIN} />
+        <line x1="58" y1="322" x2="58" y2="276" stroke={SKIN} strokeWidth="17" strokeLinecap="round" />
+        <ellipse cx="220" cy="232" rx="96" ry="106" fill={SKIN} />
+        <path d="M112 236 C100 70 340 70 328 236 Q300 150 226 148 Q150 150 112 236 Z" fill={HAIR} />
+        <line x1="108" y1="210" x2="116" y2="330" stroke="#7b4be8" strokeWidth="5" strokeLinecap="round" />
+        <line x1="220" y1="70" x2="220" y2="150" stroke="#ffd60a" strokeWidth="3" />
+        <circle cx="220" cy="158" r="8" fill="#ff3d57" />
+        <circle cx="220" cy="158" r="3" fill="#ffd60a" />
+        <circle cx="220" cy="190" r="6" fill="#d90429" />
+        <polyline points="150,206 168,198 192,204" stroke={HAIR} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <polyline points="290,206 272,198 248,204" stroke={HAIR} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        {[170, 270].map((cx) => (
+          <g key={"e" + cx} transform={"translate(0 238) scale(1 " + blink + ") translate(0 -238)"}>
+            <ellipse cx={cx} cy="238" rx="28" ry="32" fill="#fff" />
+            <ellipse cx={cx + 2} cy="243" rx="20" ry="25" fill="#b5651d" />
+            <ellipse cx={cx + 2} cy="245" rx="11" ry="14" fill="#2a1208" />
+            <circle cx={cx + 9} cy="232" r="6" fill="#fff" />
+            <circle cx={cx - 5} cy="251" r="3" fill="#fff" />
+            <path d={"M" + (cx - 26.2) + " 226.8 A28 32 0 0 1 " + (cx + 26) + " 226"} stroke={HAIR} strokeWidth="7" strokeLinecap="round" fill="none" />
+          </g>
+        ))}
+        <ellipse cx="140" cy="284" rx="18" ry="12" fill="rgba(255,105,150,0.45)" />
+        <ellipse cx="300" cy="284" rx="18" ry="12" fill="rgba(255,105,150,0.45)" />
+        <path d="M227.7 277.8 A6 6 0 0 1 216.9 279.1" stroke="#c98a62" strokeWidth="3" fill="none" />
+        <ellipse cx="220" cy="314" rx="13" ry={mouth} fill="#c0304a" />
+        <rect x="212" y={314 - mouth + 1} width="16" height={Math.min(5, mouth)} fill="#fff" />
+        {[116, 324].map((cx) => (
+          <g key={"er" + cx}>
+            <circle cx={cx} cy="300" r="6" fill="#ffd60a" />
+            <ellipse cx={cx} cy="318" rx="5" ry="9" fill="#ffd60a" />
+          </g>
+        ))}
+        {[0, 1, 2, 3, 4].map((k) => (
+          <circle key={"f" + k} cx={332 + Math.cos(k * 1.2566) * 16} cy={150 + Math.sin(k * 1.2566) * 16} r="12" fill="#ff9a3c" />
+        ))}
+        <circle cx="332" cy="150" r="9" fill="#ffd60a" />
+        <g transform={"translate(372 265) rotate(" + (-3.4 + wave * 0.5) + ")"}>
+          <rect x="-56" y="-60" width="112" height="112" rx="10" fill="#fff" />
+          <rect x="-44" y="-48" width="36" height="32" rx="5" fill="#4aa3df" />
+          <circle cx="-26" cy="-40" r="7" fill="#fff" />
+          <ellipse cx="-26" cy="-22" rx="12" ry="7" fill="#fff" />
+          <rect x="0" y="-44" width="44" height="6" fill="#c9d1e0" />
+          <rect x="0" y="-30" width="32" height="6" fill="#c9d1e0" />
+          <rect x="-44" y="-4" width="88" height="6" fill="#c9d1e0" />
+          <circle cx="22" cy="28" r="15" fill="#1fb15a" />
+          <polyline points="14,28 20,34 31,22" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </g>
+        <ellipse cx="374" cy="324" rx="26" ry="24" fill={SKIN} />
+      </svg>
     </div>
   );
 };
@@ -396,6 +533,7 @@ const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMu
       <Progress marks={starts.slice(1)} total={total} />
       <InfoBoxes info={info} />
       <Footer />
+      <Presenter />
     </AbsoluteFill>
   );
 };
