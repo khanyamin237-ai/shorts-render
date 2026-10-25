@@ -506,6 +506,33 @@ const Presenter: React.FC = () => {
   );
 };
 
+const CartoonDuo: React.FC<{ speaker: number }> = ({ speaker }) => {
+  const frame = useCurrentFrame();
+  const mouthA = speaker === 0 ? 5 + Math.abs(Math.sin(frame / 2.5)) * 16 : 5;
+  const mouthB = speaker === 1 ? 5 + Math.abs(Math.sin(frame / 2.7)) * 15 : 5;
+  const bobA = Math.sin(frame / 5) * (speaker === 0 ? 7 : 2);
+  const bobB = Math.sin(frame / 5.5) * (speaker === 1 ? 7 : 2);
+  const character = (name: string, x: number, shirt: string, hair: string, mouth: number, bob: number, active: boolean) => (
+    <div style={{ position: "absolute", left: x, top: 455 + bob, width: 250, height: 250, borderRadius: 30, background: active ? "rgba(255,230,0,0.22)" : "rgba(255,255,255,0.08)", border: (active ? 6 : 3) + "px solid " + (active ? YELLOW : "rgba(255,255,255,0.3)"), boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", boxShadow: active ? "0 0 36px rgba(255,230,0,0.45)" : "none" }}>
+      <svg width="150" height="155" viewBox="0 0 150 155">
+        <path d="M25 76 Q10 15 75 14 Q140 15 125 76 L122 130 L28 130 Z" fill={hair} />
+        <ellipse cx="75" cy="65" rx="48" ry="48" fill="#f3c69b" />
+        <path d="M27 57 Q22 4 75 13 Q128 4 123 57 Q100 30 75 34 Q50 30 27 57" fill={hair} />
+        <ellipse cx="57" cy="64" rx="7" ry="10" fill="#171717" /><ellipse cx="93" cy="64" rx="7" ry="10" fill="#171717" />
+        <circle cx="59" cy="61" r="2.5" fill="#fff" /><circle cx="95" cy="61" r="2.5" fill="#fff" />
+        <ellipse cx="75" cy="91" rx="13" ry={mouth} fill="#7a1d2b" /><path d={"M62 " + (91 - mouth / 2) + " Q75 " + (88 - mouth / 2) + " 88 " + (91 - mouth / 2)} stroke="#fff" strokeWidth="3" fill="none" />
+        <path d="M24 128 Q75 102 126 128 L140 155 L10 155 Z" fill={shirt} />
+      </svg>
+      <div style={{ marginTop: -3, fontFamily: FONT, fontSize: 30, fontWeight: 800, color: WHITE }}>{name}</div>
+      <div style={{ fontFamily: FONT, fontSize: 19, color: active ? YELLOW : "#e0e7ff" }}>{active ? "बोल रहा है…" : "सुन रहा है"}</div>
+    </div>
+  );
+  return <>
+    {character("मुन्ना भाई", 55, "#1976d2", "#24152f", mouthA, bobA, speaker === 0)}
+    {character("चिंटू", 775, "#f59e0b", "#4b2715", mouthB, bobB, speaker === 1)}
+  </>;
+};
+
 const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic, voiceVolume = 1, musicVolume = 0.12, musicFile = "music.mp3" }) => {
   useHind();
   const lens = sceneFrames(durations);
@@ -525,6 +552,7 @@ const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMu
       {scenes.map((s, i) => (
         <Sequence key={i} from={starts[i]} durationInFrames={lens[i]} name={"Scene " + (i + 1)}>
           <Audio src={staticFile(voiceFiles[i])} volume={voiceVolume} />
+          <CartoonDuo speaker={i % 2} />
           <Badge index={i} frames={lens[i]} />
           <Caption text={s.caption} hook={i === 0} frames={lens[i]} />
           <Sweep />
@@ -533,7 +561,6 @@ const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMu
       <Progress marks={starts.slice(1)} total={total} />
       <InfoBoxes info={info} />
       <Footer />
-      <Presenter />
     </AbsoluteFill>
   );
 };
