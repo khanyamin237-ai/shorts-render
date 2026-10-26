@@ -34,6 +34,9 @@ export type ShortProps = {
   bg?: string; // thumbnail ki background photo (public/ me file ka naam), na ho to purana gradient design
   layout?: string; // thumbnail layout id (bold-top, center-stamp, side-bar, diagonal-split, bottom-card, news-flash); na ho to bold-top
   palette?: { dark: string; mid: string; accent: string; accent2: string; headline: string; panel: string; ink: string }; // thumbnail ke colours
+  speakers?: number[]; // cartoon dialogue: har scene ka speaker (0 = pehla character, 1 = doosra); na ho to baari-baari
+  cta?: string; // aakhri scene par subscribe/comment banner
+  subtitles?: boolean; // false = subtitles band
 };
 
 // Sirf Studio preview / test ke liye. Asli render me props.json aata hai (prepare.mjs banata hai).
