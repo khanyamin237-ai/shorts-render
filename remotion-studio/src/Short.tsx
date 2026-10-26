@@ -223,16 +223,16 @@ const Badge: React.FC<{ index: number; frames: number }> = ({ index, frames }) =
 
 const captionSize = (text: string, hook: boolean) => {
   const n = [...text].length;
-  const base = n > 44 ? 66 : n > 30 ? 76 : n > 18 ? 88 : 96;
+  const base = n > 140 ? 52 : n > 100 ? 58 : n > 80 ? 62 : n > 44 ? 66 : n > 30 ? 76 : n > 18 ? 88 : 96;
   return hook ? base + 6 : base;
 };
 
 // Caption: har shabd baari-baari se spring ke saath uchhalkar aata hai, scene ke end par fade-out.
-const Caption: React.FC<{ text: string; hook: boolean; frames: number }> = ({ text, hook, frames }) => {
+const Caption: React.FC<{ text: string; hook: boolean; frames: number; accent?: string }> = ({ text, hook, frames, accent }) => {
   const frame = useCurrentFrame();
   const words = text.trim().split(/\s+/);
   const size = captionSize(text, hook);
-  const color = hook ? YELLOW : WHITE;
+  const color = hook ? YELLOW : accent ?? WHITE;
   const exit = interpolate(frame, [frames - 8, frames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const drift = interpolate(frame, [0, frames], [1, 1.045], { extrapolateRight: "clamp" });
   const bar = interpolate(frame, [4, 22], [0, 320], { easing: Easing.out(Easing.cubic), extrapolateLeft: "clamp", extrapolateRight: "clamp" });
@@ -533,7 +533,41 @@ const CartoonDuo: React.FC<{ speaker: number }> = ({ speaker }) => {
   </>;
 };
 
-const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic, voiceVolume = 1, musicVolume = 0.12, musicFile = "music.mp3" }) => {
+// Aakhri scene par subscribe/comment banner (sirf text: video ke font me emoji nahi hote).
+const CtaBanner: React.FC<{ text: string }> = ({ text }) => {
+  const frame = useCurrentFrame();
+  const p = pop(frame, 6, 10);
+  const pulse = 1 + Math.sin(frame / 5) * 0.03;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 90,
+        top: 1330,
+        width: 900,
+        height: 120,
+        borderRadius: 60,
+        background: RED,
+        border: "4px solid " + WHITE,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: WHITE,
+        fontFamily: FONT,
+        fontWeight: 700,
+        fontSize: 50,
+        textAlign: "center",
+        transform: "scale(" + p * pulse + ")",
+        opacity: Math.min(1, p * 1.5),
+        boxShadow: "0 0 40px rgba(217,4,41,0.7)",
+      }}
+    >
+      {text}
+    </div>
+  );
+};
+
+const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic, voiceVolume = 1, musicVolume = 0.12, musicFile = "music.mp3", speakers, cta, subtitles }) => {
   useHind();
   const lens = sceneFrames(durations);
   const total = lens.reduce((a, b) => a + b, 0);
@@ -552,9 +586,10 @@ const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMu
       {scenes.map((s, i) => (
         <Sequence key={i} from={starts[i]} durationInFrames={lens[i]} name={"Scene " + (i + 1)}>
           <Audio src={staticFile(voiceFiles[i])} volume={voiceVolume} />
-          <CartoonDuo speaker={i % 2} />
+          <CartoonDuo speaker={speakers && speakers[i] !== undefined ? speakers[i] : i % 2} />
           <Badge index={i} frames={lens[i]} />
-          <Caption text={s.caption} hook={i === 0} frames={lens[i]} />
+          {subtitles === false ? null : <Caption text={s.caption} hook={i === 0} frames={lens[i]} accent={speakers && speakers[i] === 1 ? "#FFD27A" : undefined} />}
+          {cta && i === scenes.length - 1 ? <CtaBanner text={cta} /> : null}
           <Sweep />
         </Sequence>
       ))}
