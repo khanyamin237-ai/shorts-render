@@ -37,6 +37,8 @@ export type ShortProps = {
   speakers?: number[]; // cartoon dialogue: har scene ka speaker (0 = pehla character, 1 = doosra); na ho to baari-baari
   cta?: string; // aakhri scene par subscribe/comment banner
   subtitles?: boolean; // false = subtitles band
+  moods?: string[]; // cartoon dialogue: har scene ke bolne wale ke chehre ka bhaav (happy / surprised / worried)
+  chars?: Record<string, string>; // cartoon dialogue: character sheet ke 6 chehre (public/ me file ke naam); na ho to purane drawn cartoon
 };
 
 // Sirf Studio preview / test ke liye. Asli render me props.json aata hai (prepare.mjs banata hai).
