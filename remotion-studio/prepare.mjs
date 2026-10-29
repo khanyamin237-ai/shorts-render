@@ -103,6 +103,27 @@ if (payload.bgUrl) {
   }
 }
 
+// Cartoon chehre (character sheet se bane 6 JPEG). Sab 6 na mile to chupchap purane drawn cartoon use hote hain.
+const chars = {};
+if (payload.charUrls && typeof payload.charUrls === "object") {
+  for (const key of ["munna", "chintu"].flatMap((w) => ["happy", "surprised", "worried"].map((m) => w + "-" + m))) {
+    try {
+      const url = payload.charUrls[key];
+      if (!url) continue;
+      const buf = await download(String(url), "Character " + key);
+      const isPng = buf.subarray(1, 4).toString("latin1") === "PNG";
+      const isJpg = buf[0] === 0xff && buf[1] === 0xd8;
+      if (!isPng && !isJpg) continue;
+      const name = "char-" + key + (isPng ? ".png" : ".jpg");
+      fs.writeFileSync("public/" + name, buf);
+      chars[key] = name;
+    } catch (err) {
+      console.log("Character skip:", key, String(err));
+    }
+  }
+}
+const charsReady = Object.keys(chars).length === 6;
+
 const props = {
   scenes: scenes.map((s) => ({ voice: String(s.voice || ""), caption: String(s.caption || "") })),
   info: payload.info || { postName: "", totalPosts: "", startDate: "", lastDate: "" },
@@ -118,6 +139,8 @@ const props = {
   ...(Array.isArray(payload.speakers) ? { speakers: payload.speakers.map((n) => (Number(n) === 1 ? 1 : 0)) } : {}),
   ...(payload.cta ? { cta: String(payload.cta).slice(0, 60) } : {}),
   ...(payload.subtitles === false ? { subtitles: false } : {}),
+  ...(Array.isArray(payload.moods) ? { moods: payload.moods.map((m) => (m === "surprised" || m === "worried" ? m : "happy")) } : {}),
+  ...(charsReady ? { chars } : {}),
   ...(bg ? { bg } : {}),
   ...(typeof payload.layout === "string" ? { layout: payload.layout } : {}),
   ...(payload.palette && typeof payload.palette === "object" ? { palette: payload.palette } : {}),
