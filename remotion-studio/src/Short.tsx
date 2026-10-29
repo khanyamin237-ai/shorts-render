@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Easing, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Easing, Img, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT, FPS, H, INTRO_FRAMES, NOT_FOUND, W, sceneFrames, useHind, type ShortProps } from "./common";
 import { Thumb } from "./Thumb";
 
@@ -176,14 +176,14 @@ const Header: React.FC<{ postName: string }> = ({ postName }) => {
 };
 
 // Scene number ke aas-paas ghoomta ring: scene kitna bacha hai ye dikhata hai.
-const Badge: React.FC<{ index: number; frames: number }> = ({ index, frames }) => {
+const Badge: React.FC<{ index: number; frames: number; cy?: number }> = ({ index, frames, cy = 640 }) => {
   const frame = useCurrentFrame();
   const s = pop(frame, 0, 9);
   const r = 50;
   const c = 2 * Math.PI * r;
   const prog = interpolate(frame, [0, frames], [0, 1], { extrapolateRight: "clamp" });
   return (
-    <div style={{ position: "absolute", left: W / 2 - 62, top: 640 - 62, width: 124, height: 124, transform: "scale(" + s + ")" }}>
+    <div style={{ position: "absolute", left: W / 2 - 62, top: cy - 62, width: 124, height: 124, transform: "scale(" + s + ")" }}>
       <svg width={124} height={124} viewBox="0 0 124 124">
         <circle cx={62} cy={62} r={r} fill="#0B132B" stroke="#3A4670" strokeWidth={9} />
         <circle
@@ -228,7 +228,7 @@ const captionSize = (text: string, hook: boolean) => {
 };
 
 // Caption: har shabd baari-baari se spring ke saath uchhalkar aata hai, scene ke end par fade-out.
-const Caption: React.FC<{ text: string; hook: boolean; frames: number; accent?: string }> = ({ text, hook, frames, accent }) => {
+const Caption: React.FC<{ text: string; hook: boolean; frames: number; accent?: string; top?: number; height?: number }> = ({ text, hook, frames, accent, top = 750, height = 500 }) => {
   const frame = useCurrentFrame();
   const words = text.trim().split(/\s+/);
   const size = captionSize(text, hook);
@@ -241,9 +241,9 @@ const Caption: React.FC<{ text: string; hook: boolean; frames: number; accent?: 
       style={{
         position: "absolute",
         left: 60,
-        top: 750,
+        top: top,
         width: 960,
-        height: 500,
+        height: height,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -533,6 +533,79 @@ const CartoonDuo: React.FC<{ speaker: number }> = ({ speaker }) => {
   </>;
 };
 
+type Mood = "happy" | "surprised" | "worried";
+const asMood = (m: string | undefined): Mood => (m === "surprised" || m === "worried" ? m : "happy");
+const ALT_MOOD: Record<Mood, Mood> = { happy: "surprised", surprised: "happy", worried: "surprised" };
+const CARD_W = 360;
+const CARD_H = 457;
+const CARD_TOP = 455;
+
+// Character sheet ke asli 3D chehre: bolne wala bada + chamakta, sunne wala thoda chhota aur dhundhla.
+// Bolte waqt chehra line ke mood (khush / hairan / chintit) ka hota hai aur beech-beech me "munh khulne" wala chehra jhalakta hai.
+const FaceCard: React.FC<{ who: string; x: number; name: string; ribbon: string; mood: Mood; active: boolean; chars: Record<string, string> }> = ({ who, x, name, ribbon, mood, active, chars }) => {
+  const frame = useCurrentFrame();
+  const p = pop(frame, 0, 9);
+  const syl = Math.sin(frame / 2.2) + Math.sin(frame / 3.7 + 1.3);
+  const cur: Mood = active && syl > 0.9 ? ALT_MOOD[mood] : mood;
+  const bob = active ? Math.sin(frame / 4) * 9 : Math.sin(frame / 18) * 3;
+  const tilt = active ? Math.sin(frame / 6) * 1.8 : Math.sin(frame / 22) * 0.8;
+  const scale = active ? 0.95 + 0.09 * p + Math.abs(Math.sin(frame / 2.3)) * 0.012 : 0.93;
+  return (
+    <div style={{ position: "absolute", left: x, top: CARD_TOP + bob, width: CARD_W, height: CARD_H, transformOrigin: "50% 100%", transform: "rotate(" + tilt + "deg) scale(" + scale + ")" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: CARD_W,
+          height: CARD_H,
+          borderRadius: 36,
+          overflow: "hidden",
+          boxSizing: "border-box",
+          border: (active ? 8 : 4) + "px solid " + (active ? YELLOW : "rgba(255,255,255,0.45)"),
+          boxShadow: active ? "0 0 44px rgba(255,230,0,0.55), 0 18px 40px rgba(0,0,0,0.5)" : "0 12px 28px rgba(0,0,0,0.45)",
+          filter: active ? "none" : "brightness(0.8) saturate(0.9)",
+          background: "#0b3a8a",
+        }}
+      >
+        {(["happy", "surprised", "worried"] as Mood[]).map((m) => (
+          <Img key={m} src={staticFile(chars[who + "-" + m])} style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", objectFit: "cover", opacity: m === cur ? 1 : 0 }} />
+        ))}
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: -16,
+          right: -16,
+          bottom: -30,
+          height: 72,
+          borderRadius: 12,
+          background: ribbon,
+          border: "3px solid " + WHITE,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: WHITE,
+          fontFamily: FONT,
+          fontWeight: 700,
+          fontSize: 44,
+          boxShadow: "0 8px 20px rgba(0,0,0,0.45)",
+          transform: "skewX(-6deg)",
+        }}
+      >
+        {name}
+      </div>
+    </div>
+  );
+};
+
+const CharDuo: React.FC<{ speaker: number; mood: Mood; listenerMood: Mood; chars: Record<string, string> }> = ({ speaker, mood, listenerMood, chars }) => (
+  <>
+    <FaceCard who="munna" x={70} name="मुन्ना भाई" ribbon="#D90429" mood={speaker === 0 ? mood : listenerMood} active={speaker === 0} chars={chars} />
+    <FaceCard who="chintu" x={650} name="चिंटू" ribbon="#1D4ED8" mood={speaker === 1 ? mood : listenerMood} active={speaker === 1} chars={chars} />
+  </>
+);
+
 // Aakhri scene par subscribe/comment banner (sirf text: video ke font me emoji nahi hote).
 const CtaBanner: React.FC<{ text: string }> = ({ text }) => {
   const frame = useCurrentFrame();
@@ -567,8 +640,17 @@ const CtaBanner: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic, voiceVolume = 1, musicVolume = 0.12, musicFile = "music.mp3", speakers, cta, subtitles }) => {
+const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMusic, voiceVolume = 1, musicVolume = 0.12, musicFile = "music.mp3", speakers, cta, subtitles, moods, chars }) => {
   useHind();
+  const useChars = !!chars && ["munna", "chintu"].every((w) => ["happy", "surprised", "worried"].every((m) => !!chars[w + "-" + m]));
+  const spk = (i: number) => (speakers && speakers[i] !== undefined ? speakers[i] : i % 2);
+  const moodAt = (i: number): Mood => asMood(moods ? moods[i] : undefined);
+  // Sunne wale ka chehra: uski pichhli apni line ka bhaav; na ho to bolne wala chinta me ho tabhi chintit, warna khush.
+  const listenerAt = (i: number): Mood => {
+    const other = 1 - spk(i);
+    for (let k = i - 1; k >= 0; k--) if (spk(k) === other) return moodAt(k);
+    return moodAt(i) === "worried" ? "worried" : "happy";
+  };
   const lens = sceneFrames(durations);
   const total = lens.reduce((a, b) => a + b, 0);
   const starts = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
@@ -586,9 +668,9 @@ const Body: React.FC<ShortProps> = ({ scenes, info, voiceFiles, durations, hasMu
       {scenes.map((s, i) => (
         <Sequence key={i} from={starts[i]} durationInFrames={lens[i]} name={"Scene " + (i + 1)}>
           <Audio src={staticFile(voiceFiles[i])} volume={voiceVolume} />
-          <CartoonDuo speaker={speakers && speakers[i] !== undefined ? speakers[i] : i % 2} />
-          <Badge index={i} frames={lens[i]} />
-          {subtitles === false ? null : <Caption text={s.caption} hook={i === 0} frames={lens[i]} accent={speakers && speakers[i] === 1 ? "#FFD27A" : undefined} />}
+          {useChars && chars ? <CharDuo speaker={spk(i)} mood={moodAt(i)} listenerMood={listenerAt(i)} chars={chars} /> : <CartoonDuo speaker={spk(i)} />}
+          <Badge index={i} frames={lens[i]} cy={useChars ? 683 : 640} />
+          {subtitles === false ? null : <Caption text={s.caption} hook={i === 0} frames={lens[i]} accent={speakers && speakers[i] === 1 ? "#FFD27A" : undefined} top={useChars ? 960 : undefined} height={useChars ? 330 : undefined} />}
           {cta && i === scenes.length - 1 ? <CtaBanner text={cta} /> : null}
           <Sweep />
         </Sequence>
